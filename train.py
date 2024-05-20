@@ -1,4 +1,4 @@
-from datareader import DBreader_Vimeo90k
+from datareader import CustomDataset
 from torch.utils.data import DataLoader
 import argparse
 from torchvision import transforms
@@ -45,12 +45,11 @@ parser.add_argument('--dilation', type=int, default=1)
 
 transform = transforms.Compose([transforms.ToTensor()])
 
-
 def main():
     args = parser.parse_args()
     torch.cuda.set_device(args.gpu_id)
 
-    dataset = DBreader_Vimeo90k(args.train, random_crop=(args.patch_size, args.patch_size))
+    dataset = CustomDataset(db_dir=args.train, random_crop=(args.patch_size, args.patch_size))
     TestDB = Middlebury_other(args.test_input, args.gt)
     train_loader = DataLoader(dataset=dataset, batch_size=args.batch_size, shuffle=True, num_workers=0)
     model = models.Model(args)
@@ -76,7 +75,6 @@ def main():
         my_trainer.test()
 
     my_trainer.close()
-
 
 if __name__ == "__main__":
     main()

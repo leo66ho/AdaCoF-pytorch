@@ -6,7 +6,6 @@ from torchvision.utils import save_image as imwrite
 import os
 from utility import to_variable
 
-
 class Middlebury_eval:
     def __init__(self, input_dir='./evaluation'):
         self.im_list = ['Backyard', 'Basketball', 'Dumptruck', 'Evergreen', 'Mequon', 'Schefflera', 'Teddy', 'Urban']
@@ -24,8 +23,7 @@ class Middlebury_eval:
             if not os.path.exists(output_dir + '/' + self.im_list[idx]):
                 os.makedirs(output_dir + '/' + self.im_list[idx])
             frame_out = model(self.input0_list[idx], self.input1_list[idx])
-            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name, range=(0, 1))
-
+            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name)  # 移除 range 參數
 
 class Middlebury_other:
     def __init__(self, input_dir, gt_dir):
@@ -52,7 +50,7 @@ class Middlebury_other:
             gt = self.gt_list[idx]
             psnr = -10 * log10(torch.mean((gt - frame_out) * (gt - frame_out)).item())
             av_psnr += psnr
-            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name, range=(0, 1))
+            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name)  # 移除 range 參數
             msg = '{:<15s}{:<20.16f}'.format(self.im_list[idx] + ': ', psnr) + '\n'
             print(msg, end='')
             if logfile is not None:
@@ -62,7 +60,6 @@ class Middlebury_other:
         print(msg, end='')
         if logfile is not None:
             logfile.write(msg)
-
 
 class Davis:
     def __init__(self, input_dir, gt_dir):
@@ -89,7 +86,7 @@ class Davis:
             gt = self.gt_list[idx]
             psnr = -10 * log10(torch.mean((gt - frame_out) * (gt - frame_out)).item())
             av_psnr += psnr
-            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name, range=(0, 1))
+            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name)  # 移除 range 參數
             msg = '{:<15s}{:<20.16f}'.format(self.im_list[idx] + ': ', psnr) + '\n'
             print(msg, end='')
             if logfile is not None:
@@ -100,10 +97,9 @@ class Davis:
         if logfile is not None:
             logfile.write(msg)
 
-
 class ucf:
     def __init__(self, input_dir):
-        self.im_list = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21']
+        self.im_list = ['1', '2', '3',  '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21']
         self.transform = transforms.Compose([transforms.ToTensor()])
 
         self.input0_list = []
@@ -126,7 +122,7 @@ class ucf:
             gt = self.gt_list[idx]
             psnr = -10 * log10(torch.mean((gt - frame_out) * (gt - frame_out)).item())
             av_psnr += psnr
-            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name, range=(0, 1))
+            imwrite(frame_out, output_dir + '/' + self.im_list[idx] + '/' + output_name)  # 移除 range 參數
             msg = '{:<15s}{:<20.16f}'.format(self.im_list[idx] + ': ', psnr) + '\n'
             print(msg, end='')
             if logfile is not None:

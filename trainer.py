@@ -3,7 +3,6 @@ import torch
 import utility
 from utility import to_variable
 
-
 class Trainer:
     def __init__(self, args, train_loader, test_loader, my_model, my_loss, start_epoch=0):
         self.args = args
@@ -36,15 +35,18 @@ class Trainer:
     def train(self):
         # Train
         self.model.train()
-        for batch_idx, (frame0, frame1, frame2) in enumerate(self.train_loader):
+        for batch_idx, (frame0, frame1, frame2, frame3, frame4, frame5) in enumerate(self.train_loader):
             frame0 = to_variable(frame0)
             frame1 = to_variable(frame1)
             frame2 = to_variable(frame2)
+            frame3 = to_variable(frame3)
+            frame4 = to_variable(frame4)
+            frame5 = to_variable(frame5)
 
             self.optimizer.zero_grad()
 
-            output = self.model(frame0, frame2)
-            loss = self.loss(output, frame1, [frame0, frame2])
+            output = self.model(frame0, frame2, frame3, frame4, frame5)
+            loss = self.loss(output, frame1, [frame0, frame2, frame3, frame4, frame5])
             loss.backward()
             self.optimizer.step()
 

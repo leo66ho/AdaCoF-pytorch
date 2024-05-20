@@ -7,17 +7,15 @@ from torchvision import transforms
 import torchvision.transforms.functional as TF
 import random
 
-
 def cointoss(p):
     return random.random() < p
-
 
 class CustomDataset(Dataset):
     def __init__(self, db_dir, resolution='High', random_crop=None, resize=None, augment_s=True, augment_t=True):
         self.random_crop = random_crop
         self.augment_s = augment_s
         self.augment_t = augment_t
-        self.db_dir = join(db_dir, 'train', resolution + '_Resolution')
+        self.db_dir = db_dir  # 直接使用傳入的 db_dir
         
         transform_list = []
         if resize is not None:
@@ -83,13 +81,3 @@ class CustomDataset(Dataset):
 
     def __len__(self):
         return self.file_len
-
-
-# 使用示例
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    # 其他你需要的轉換
-])
-
-train_dataset = CustomDataset(db_dir='path/to/topic3_release', resolution='High', transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
