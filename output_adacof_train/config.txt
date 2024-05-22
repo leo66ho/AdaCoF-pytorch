@@ -64,3 +64,113 @@ weight_decay: 0
 kernel_size: 5
 dilation: 1
 
+2024-05-22-11:44:31
+
+model: adacofnet
+gpu_id: 0
+train: /content/drive/MyDrive/multimedia_final/train/High_Resolution
+out_dir: ./output_adacof_train
+load: None
+test_input: ./test_input/middlebury_others/input
+gt: ./test_input/middlebury_others/gt
+epochs: 50
+batch_size: 16
+loss: 1*Charb+0.01*g_Spatial+0.005*g_Occlusion
+patch_size: 256
+lr: 0.001
+lr_decay: 20
+decay_type: step
+gamma: 0.5
+optimizer: ADAMax
+weight_decay: 0
+kernel_size: 5
+dilation: 1
+
+2024-05-22-11:48:37
+
+model: adacofnet
+gpu_id: 0
+train: /content/drive/MyDrive/multimedia_final/train/High_Resolution
+out_dir: ./output_adacof_train
+load: None
+test_input: ./test_input/middlebury_others/input
+gt: ./test_input/middlebury_others/gt
+epochs: 50
+batch_size: 16
+loss: 1*Charb+0.01*g_Spatial+0.005*g_Occlusion
+patch_size: 256
+lr: 0.001
+lr_decay: 20
+decay_type: step
+gamma: 0.5
+optimizer: ADAMax
+weight_decay: 0
+kernel_size: 5
+dilation: 1
+
+2024-05-22-11:56:46
+
+model: adacofnet
+gpu_id: 0
+train: /content/drive/MyDrive/multimedia_final/train/High_Resolution
+out_dir: ./output_adacof_train
+load: None
+test_input: ./test_input/middlebury_others/input
+gt: ./test_input/middlebury_others/gt
+epochs: 50
+batch_size: 16
+loss: 1*Charb+0.01*g_Spatial+0.005*g_Occlusion
+patch_size: 256
+lr: 0.001
+lr_decay: 20
+decay_type: step
+gamma: 0.5
+optimizer: ADAMax
+weight_decay: 0
+kernel_size: 5
+dilation: 1
+
+2024-05-22-12:08:50
+
+model: adacofnet
+gpu_id: 0
+train: /content/drive/MyDrive/multimedia_final/train/High_Resolution
+out_dir: ./output_adacof_train
+load: None
+test_input: ./test_input/middlebury_others/input
+gt: ./test_input/middlebury_others/gt
+epochs: 50
+batch_size: 16
+loss: 1*Charb+0.01*g_Spatial+0.005*g_Occlusion
+patch_size: 256
+lr: 0.001
+lr_decay: 20
+decay_type: step
+gamma: 0.5
+optimizer: ADAMax
+weight_decay: 0
+kernel_size: 5
+dilation: 1
+
+2024-05-22-12:28:47
+
+model: adacofnet
+gpu_id: 0
+train: /content/drive/MyDrive/multimedia_final/train/High_Resolution
+out_dir: ./output_adacof_train
+load: None
+test_input: ./test_input/middlebury_others/input
+gt: ./test_input/middlebury_others/gt
+epochs: 50
+batch_size: 32
+loss: 1*Charb+0.01*g_Spatial+0.005*g_Occlusion
+patch_size: 256
+lr: 0.001
+lr_decay: 20
+decay_type: step
+gamma: 0.5
+optimizer: ADAMax
+weight_decay: 0
+kernel_size: 5
+dilation: 1
+

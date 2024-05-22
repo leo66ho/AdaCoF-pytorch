@@ -35,20 +35,22 @@ class Trainer:
     def train(self):
         # Train
         self.model.train()
-        for batch_idx, (frame0, frame1, frame2, frame3, frame4, frame5) in enumerate(self.train_loader):
+        for batch_idx, (frame0, frame1, frame2) in enumerate(self.train_loader):  # 確保只解包三個變量
+            print(f"Training step: {batch_idx}/{self.max_step}")  # 添加打印語句
             frame0 = to_variable(frame0)
             frame1 = to_variable(frame1)
             frame2 = to_variable(frame2)
-            frame3 = to_variable(frame3)
-            frame4 = to_variable(frame4)
-            frame5 = to_variable(frame5)
+
+            print(f"Frames loaded: {frame0.shape}, {frame1.shape}, {frame2.shape}")  # 添加打印語句
 
             self.optimizer.zero_grad()
 
-            output = self.model(frame0, frame2, frame3, frame4, frame5)
-            loss = self.loss(output, frame1, [frame0, frame2, frame3, frame4, frame5])
+            output = self.model(frame0, frame2)  # 確保只傳遞需要的參數
+            loss = self.loss(output, frame1, [frame0, frame2])
             loss.backward()
             self.optimizer.step()
+
+            print(f"Loss: {loss.item()}")  # 添加打印語句
 
             if batch_idx % 100 == 0:
                 print('{:<13s}{:<14s}{:<6s}{:<16s}{:<12s}{:<20.16f}'.format('Train Epoch: ', '[' + str(self.current_epoch) + '/' + str(self.args.epochs) + ']', 'Step: ', '[' + str(batch_idx) + '/' + str(self.max_step) + ']', 'train loss: ', loss.item()))
