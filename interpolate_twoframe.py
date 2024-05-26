@@ -63,7 +63,7 @@ def main():
 
     model.eval()
     frame_out = model(frame1, frame2)
-    imwrite(frame_out.clone(), args.output_frame, range=(0, 1))
+    imwrite(frame_out.clone(), args.output_frame, value_range=(0, 1))
 
 
 if __name__ == "__main__":
