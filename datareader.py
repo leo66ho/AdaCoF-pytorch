@@ -29,7 +29,7 @@ class CustomDataset(Dataset):
             if isdir(folder1_path):
                 for folder2 in listdir(folder1_path):
                     folder2_path = join(folder1_path, folder2)
-                    if isdir(folder2_path):
+                    if isdir(folder2_path) and folder2_path[-1] in ['2','5','8']:
                         self.triplet_list.append(folder2_path)
 
         self.triplet_list = np.array(self.triplet_list)
@@ -39,8 +39,8 @@ class CustomDataset(Dataset):
         folder_path = self.triplet_list[index]
         
         rawFrame0 = Image.open(join(folder_path, "im1.png"))
-        rawFrame1 = Image.open(join(folder_path, "im2.png"))
-        rawFrame2 = Image.open(join(folder_path, "im3.png"))
+        rawFrame1 = Image.open(join(folder_path, "im4.png"))
+        rawFrame2 = Image.open(join(folder_path, "im7.png"))
         # rawFrame3 = Image.open(join(folder_path, "im5.png"))
         # rawFrame4 = Image.open(join(folder_path, "im6.png"))
         # rawFrame5 = Image.open(join(folder_path, "im7.png"))
