@@ -125,6 +125,7 @@ class KernelEstimation(torch.nn.Module):
 
         tensorDeconv5 = self.moduleDeconv5(tensorPool5)
         tensorUpsample5 = self.moduleUpsample5(tensorDeconv5)
+        print(tensorDeconv5.shape,tensorUpsample5)
 
         tensorCombine = tensorUpsample5 + tensorConv5
 
