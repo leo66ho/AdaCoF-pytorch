@@ -137,10 +137,10 @@ class KernelEstimation(torch.nn.Module):
         tensorUpsample3 = self.moduleUpsample3(tensorDeconv3)
 
         #Grabbing 128 components####
-        tensorDeconv3_128 = self.moduleDeconv3(tensorPool2)
-        tensorUpsample3_128 = self.moduleUpsample3(tensorDeconv3_128)
+        tensorDeconv2_128 = self.moduleDeconv2(tensorPool3)
+        tensorUpsample2_128 = self.moduleUpsample2(tensorDeconv2_128)
 
-        tensorCombine_128 = tensorUpsample3_128 + tensorConv3
+        tensorCombine_128 = tensorUpsample2_128 + tensorConv3
         ######
 
         tensorCombine = tensorUpsample3 + tensorConv3
@@ -150,10 +150,10 @@ class KernelEstimation(torch.nn.Module):
         tensorUpsample2 = self.moduleUpsample2(tensorDeconv2)
 
         #Grabbing 128 components####
-        tensorDeconv2_128 = self.moduleDeconv2(tensorCombine_128)
-        tensorUpsample2_128 = self.moduleUpsample2(tensorDeconv2_128)
+        tensorDeconv_128 = self.moduleDeconv(tensorCombine_128)
+        tensorUpsample_128 = self.moduleUpsample(tensorDeconv_128)
         
-        tensorCombine_128 = tensorUpsample2_128 + tensorConv2
+        tensorCombine_128 = tensorUpsample_128 + tensorConv2
         ######
 
         tensorCombine = tensorUpsample2 + tensorConv2
