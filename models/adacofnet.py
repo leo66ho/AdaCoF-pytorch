@@ -125,7 +125,6 @@ class KernelEstimation(torch.nn.Module):
 
         tensorDeconv5 = self.moduleDeconv5(tensorPool5)
         tensorUpsample5 = self.moduleUpsample5(tensorDeconv5)
-        print(tensorDeconv5.shape,tensorUpsample5)
 
         tensorCombine = tensorUpsample5 + tensorConv5
 
@@ -138,7 +137,8 @@ class KernelEstimation(torch.nn.Module):
         tensorUpsample3 = self.moduleUpsample3(tensorDeconv3)
 
         #Grabbing 128 components####
-        tensorDeconv2_128 = self.moduleDeconv2(tensorPool3)
+        tensorPool3_128 = self.moduleUpsample3(tensorPool3)
+        tensorDeconv2_128 = self.moduleDeconv2(tensorPool3_128)
         tensorUpsample2_128 = self.moduleUpsample2(tensorDeconv2_128)
         print(tensorDeconv2_128.shape,tensorUpsample2_128.shape)
         tensorCombine_128 = tensorUpsample2_128 + tensorConv2
