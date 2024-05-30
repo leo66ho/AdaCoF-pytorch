@@ -29,7 +29,7 @@ class CustomDataset(Dataset):
             if isdir(folder1_path):
                 for folder2 in listdir(folder1_path):
                     folder2_path = join(folder1_path, folder2)
-                    if isdir(folder2_path) and folder2_path[-1] in ['2','4','6','8','0']:
+                    if isdir(folder2_path):
                         self.triplet_list.append(folder2_path)
 
         self.triplet_list = np.array(self.triplet_list)
