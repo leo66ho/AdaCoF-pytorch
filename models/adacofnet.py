@@ -116,6 +116,7 @@ class KernelEstimation(torch.nn.Module):
         tensorConv3 = self.moduleConv3(tensorPool2)
         tensorPool3 = self.modulePool3(tensorConv3)
 
+
         tensorConv4 = self.moduleConv4(tensorPool3)
         tensorPool4 = self.modulePool4(tensorConv4)
 
@@ -135,10 +136,25 @@ class KernelEstimation(torch.nn.Module):
         tensorDeconv3 = self.moduleDeconv3(tensorCombine)
         tensorUpsample3 = self.moduleUpsample3(tensorDeconv3)
 
+        #Grabbing 128 components####
+        tensorDeconv3_128 = self.moduleDeconv3(tensorPool3)
+        tensorUpsample3_128 = self.moduleUpsample3(tensorDeconv3_128)
+
+        tensorCombine_128 = tensorUpsample3_128 + tensorConv3
+        ######
+
         tensorCombine = tensorUpsample3 + tensorConv3
+        
 
         tensorDeconv2 = self.moduleDeconv2(tensorCombine)
         tensorUpsample2 = self.moduleUpsample2(tensorDeconv2)
+
+        #Grabbing 128 components####
+        tensorDeconv2_128 = self.moduleDeconv2(tensorCombine_128)
+        tensorUpsample2_128 = self.moduleUpsample2(tensorDeconv2_128)
+        
+        tensorCombine_128 = tensorUpsample2_128 + tensorConv2
+        ######
 
         tensorCombine = tensorUpsample2 + tensorConv2
 
@@ -149,8 +165,19 @@ class KernelEstimation(torch.nn.Module):
         Alpha2 = self.moduleAlpha2(tensorCombine)
         Beta2 = self.moduleBeta2(tensorCombine)
         Occlusion = self.moduleOcclusion(tensorCombine)
+        #Setting 128 weights####
+        Weight1_128 = self.moduleWeight1(tensorCombine_128)
+        Alpha1_128 = self.moduleAlpha1(tensorCombine_128)
+        Beta1_128 = self.moduleBeta1(tensorCombine_128)
+        Weight2_128 = self.moduleWeight2(tensorCombine_128)
+        Alpha2_128 = self.moduleAlpha2(tensorCombine_128)
+        Beta2_128= self.moduleBeta2(tensorCombine_128)
+        Occlusion_128 = self.moduleOcclusion(tensorCombine_128)
+        ######
 
-        return Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion
+
+
+        return Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion,Weight1_128, Alpha1_128, Beta1_128, Weight2_128, Alpha2_128, Beta2_128, Occlusion_128
 
 
 class AdaCoFNet(torch.nn.Module):
@@ -188,16 +215,29 @@ class AdaCoFNet(torch.nn.Module):
             frame0 = F.pad(frame0, (0, pad_w, 0, 0), mode='reflect')
             frame2 = F.pad(frame2, (0, pad_w, 0, 0), mode='reflect')
             w_padded = True
-        Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion = self.get_kernel(moduleNormalize(frame0), moduleNormalize(frame2))
 
+        Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion,Weight1_128, Alpha1_128, Beta1_128, Weight2_128, Alpha2_128, Beta2_128, Occlusion_128 = self.get_kernel(moduleNormalize(frame0), moduleNormalize(frame2))
+        ##128##
+        
         tensorAdaCoF1 = self.moduleAdaCoF(self.modulePad(frame0), Weight1, Alpha1, Beta1, self.dilation)
         tensorAdaCoF2 = self.moduleAdaCoF(self.modulePad(frame2), Weight2, Alpha2, Beta2, self.dilation)
+        tensorAdaCoF1_128 = self.moduleAdaCoF(self.modulePad(frame0), Weight1_128, Alpha1_128, Beta1_128, self.dilation)
+        tensorAdaCoF2_128 = self.moduleAdaCoF(self.modulePad(frame2), Weight2_128, Alpha2_128, Beta2_128, self.dilation)
 
         frame1 = Occlusion * tensorAdaCoF1 + (1 - Occlusion) * tensorAdaCoF2
         if h_padded:
             frame1 = frame1[:, :, 0:h0, :]
         if w_padded:
             frame1 = frame1[:, :, :, 0:w0]
+
+        frame1_128 = Occlusion_128 * tensorAdaCoF1_128 + (1 - Occlusion_128) * tensorAdaCoF2_128
+        if h_padded:
+            frame1_128 = frame1_128[:, :, 0:h0, :]
+        if w_padded:
+            frame1_128 = frame1_128[:, :, :, 0:w0]
+
+        frame1_final = (frame1+frame1_128)/2.0
+
 
         if self.training:
             # Smoothness Terms
@@ -212,8 +252,21 @@ class AdaCoFNet(torch.nn.Module):
             g_Beta2 = CharbonnierFunc(m_Beta2[:, :, :, :-1] - m_Beta2[:, :, :, 1:]) + CharbonnierFunc(m_Beta2[:, :, :-1, :] - m_Beta2[:, :, 1:, :])
             g_Occlusion = CharbonnierFunc(Occlusion[:, :, :, :-1] - Occlusion[:, :, :, 1:]) + CharbonnierFunc(Occlusion[:, :, :-1, :] - Occlusion[:, :, 1:, :])
 
+            m_Alpha1_128 = torch.mean(Weight1_128 * Alpha1_128, dim=1, keepdim=True)
+            m_Alpha2_128 = torch.mean(Weight2_128 * Alpha2_128, dim=1, keepdim=True)
+            m_Beta1_128 = torch.mean(Weight1_128 * Beta1_128, dim=1, keepdim=True)
+            m_Beta2_128 = torch.mean(Weight2_128 * Beta2_128, dim=1, keepdim=True)
+
+            g_Alpha1_128 = CharbonnierFunc(m_Alpha1_128[:, :, :, :-1] - m_Alpha1_128[:, :, :, 1:]) + CharbonnierFunc(m_Alpha1_128[:, :, :-1, :] - m_Alpha1_128[:, :, 1:, :])
+            g_Beta1_128 = CharbonnierFunc(m_Beta1_128[:, :, :, :-1] - m_Beta1_128[:, :, :, 1:]) + CharbonnierFunc(m_Beta1_128[:, :, :-1, :] - m_Beta1_128[:, :, 1:, :])
+            g_Alpha2_128 = CharbonnierFunc(m_Alpha2_128[:, :, :, :-1] - m_Alpha2_128[:, :, :, 1:]) + CharbonnierFunc(m_Alpha2_128[:, :, :-1, :] - m_Alpha2_128[:, :, 1:, :])
+            g_Beta2_128 = CharbonnierFunc(m_Beta2_128[:, :, :, :-1] - m_Beta2_128[:, :, :, 1:]) + CharbonnierFunc(m_Beta2_128[:, :, :-1, :] - m_Beta2_128[:, :, 1:, :])
+            g_Occlusion_128 = CharbonnierFunc(Occlusion_128[:, :, :, :-1] - Occlusion_128[:, :, :, 1:]) + CharbonnierFunc(Occlusion_128[:, :, :-1, :] - Occlusion_128[:, :, 1:, :])
+
             g_Spatial = g_Alpha1 + g_Beta1 + g_Alpha2 + g_Beta2
 
-            return {'frame1': frame1, 'g_Spatial': g_Spatial, 'g_Occlusion': g_Occlusion}
+            g_Spatial_128 = g_Alpha1_128+g_Beta1_128+g_Alpha2_128+g_Beta2_128
+
+            return {'frame1': frame1_final, 'g_Spatial': g_Spatial, 'g_Occlusion': g_Occlusion, 'g_Spatial_128': g_Spatial_128, 'g_Occlusion_128': g_Occlusion_128}
         else:
-            return frame1
+            return frame1_final

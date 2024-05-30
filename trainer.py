@@ -46,6 +46,7 @@ class Trainer:
             self.optimizer.zero_grad()
 
             output = self.model(frame0, frame2)  # 確保只傳遞需要的參數
+            ###might have to change from here
             loss = self.loss(output, frame1, [frame0, frame2])
             loss.backward()
             self.optimizer.step()
