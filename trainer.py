@@ -36,7 +36,7 @@ class Trainer:
         # Train
         self.model.train()
         for batch_idx, (frame0, frame1, frame2) in enumerate(self.train_loader):  # 確保只解包三個變量
-            #print(f"Training step: {batch_idx}/{self.max_step}")  # 添加打印語句
+            print(f"Training step: {batch_idx}/{self.max_step}")  # 添加打印語句
             frame0 = to_variable(frame0)
             frame1 = to_variable(frame1)
             frame2 = to_variable(frame2)
