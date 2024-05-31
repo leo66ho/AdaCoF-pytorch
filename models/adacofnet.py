@@ -16,14 +16,16 @@ class KernelEstimation(torch.nn.Module):
 
         def Basic(input_channel, output_channel):
             return torch.nn.Sequential(
-                torch.nn.Conv2d(in_channels=input_channel, out_channels=(output_channel/2), kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(in_channels=input_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(inplace=False),
-                torch.nn.Conv2d(in_channels=(output_channel/2), out_channels=(output_channel/4), kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(inplace=False),
-                torch.nn.Conv2d(in_channels=(output_channel/4), out_channels=(output_channel/2), kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(inplace=False),
-                torch.nn.Conv2d(in_channels=(output_channel/2), out_channels=output_channel, kernel_size=3, stride=1, padding=1),
+                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
                 torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False)
             )
 
         def Upsample(channel):
