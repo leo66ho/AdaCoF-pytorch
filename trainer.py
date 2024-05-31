@@ -41,7 +41,7 @@ class Trainer:
             frame1 = to_variable(frame1)
             frame2 = to_variable(frame2)
 
-            print(f"Frames loaded: {frame0.shape}, {frame1.shape}, {frame2.shape}")  # 添加打印語句
+            #print(f"Frames loaded: {frame0.shape}, {frame1.shape}, {frame2.shape}")  # 添加打印語句
 
             self.optimizer.zero_grad()
 
@@ -51,7 +51,7 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-            print(f"Loss: {loss.item()}")  # 添加打印語句
+            #print(f"Loss: {loss.item()}")  # 添加打印語句
 
             if batch_idx % 100 == 0:
                 print('{:<13s}{:<14s}{:<6s}{:<16s}{:<12s}{:<20.16f}'.format('Train Epoch: ', '[' + str(self.current_epoch) + '/' + str(self.args.epochs) + ']', 'Step: ', '[' + str(batch_idx) + '/' + str(self.max_step) + ']', 'train loss: ', loss.item()))
