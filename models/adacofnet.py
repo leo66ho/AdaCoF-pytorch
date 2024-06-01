@@ -155,7 +155,7 @@ class KernelEstimation(torch.nn.Module):
 
 class KernelEstimation_256(torch.nn.Module):
     def __init__(self, kernel_size):
-        super(KernelEstimation, self).__init__()
+        super(KernelEstimation_256, self).__init__()
         self.kernel_size = kernel_size
 
         def Basic(input_channel, output_channel):
