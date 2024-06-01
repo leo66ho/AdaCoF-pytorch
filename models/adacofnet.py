@@ -109,9 +109,6 @@ class KernelEstimation(torch.nn.Module):
     def forward(self, rfield0, rfield2):
         tensorJoin = torch.cat([rfield0, rfield2], 1)
 
-        dropout = torch.nn.Dropout(p=0.1)
-        tensorJoin = dropout(tensorJoin)
-
         tensorConv1 = self.moduleConv1(tensorJoin)
         tensorPool1 = self.modulePool1(tensorConv1)
 
