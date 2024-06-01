@@ -55,7 +55,7 @@ class KernelEstimation(torch.nn.Module):
                 torch.nn.ReLU(inplace=False),
                 torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                 torch.nn.Conv2d(in_channels=ks, out_channels=ks, kernel_size=3, stride=1, padding=1),
-                torch.nn.Tanh(dim=1)
+                torch.nn.Tanh()
             )
 
         def Subnet_occlusion():
