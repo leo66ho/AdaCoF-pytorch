@@ -55,7 +55,7 @@ class KernelEstimation(torch.nn.Module):
                 torch.nn.ReLU(inplace=False),
                 torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                 torch.nn.Conv2d(in_channels=ks, out_channels=ks, kernel_size=3, stride=1, padding=1),
-                torch.nn.Softmax(dim=1)
+                torch.nn.Tanh(dim=1)
             )
 
         def Subnet_occlusion():
@@ -108,6 +108,8 @@ class KernelEstimation(torch.nn.Module):
 
     def forward(self, rfield0, rfield2):
         tensorJoin = torch.cat([rfield0, rfield2], 1)
+
+        tensorJoin = torch.nn.Dropout(0.1)
 
         tensorConv1 = self.moduleConv1(tensorJoin)
         tensorPool1 = self.modulePool1(tensorConv1)
