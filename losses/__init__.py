@@ -28,7 +28,7 @@ class Loss(nn.modules.loss._Loss):
                     args,
                     loss_type
                 )
-            elif loss_type in ['g_Spatial', 'g_Occlusion', 'Lw', 'Ls']:
+            elif loss_type in ['g_Spatial', 'g_Occlusion', 'Lw', 'Ls','g_Spatial_256', 'g_Occlusion_256']:
                 self.regularize.append({
                     'type': loss_type,
                     'weight': float(weight)}

@@ -151,6 +151,145 @@ class KernelEstimation(torch.nn.Module):
         Occlusion = self.moduleOcclusion(tensorCombine)
 
         return Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion
+    
+
+class KernelEstimation_256(torch.nn.Module):
+    def __init__(self, kernel_size):
+        super(KernelEstimation, self).__init__()
+        self.kernel_size = kernel_size
+
+        def Basic(input_channel, output_channel):
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=input_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=output_channel, out_channels=output_channel, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False)
+            )
+
+        def Upsample(channel):
+            return torch.nn.Sequential(
+                torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                torch.nn.Conv2d(in_channels=channel, out_channels=channel, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False)
+            )
+
+        def Subnet_offset(ks):
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=64, out_channels=ks, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                torch.nn.Conv2d(in_channels=ks, out_channels=ks, kernel_size=3, stride=1, padding=1)
+            )
+
+        def Subnet_weight(ks):
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=64, out_channels=ks, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                torch.nn.Conv2d(in_channels=ks, out_channels=ks, kernel_size=3, stride=1, padding=1),
+                torch.nn.Softmax(dim=1)
+            )
+
+        def Subnet_occlusion():
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                torch.nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding=1),
+                torch.nn.Sigmoid()
+            )
+
+        self.moduleConv1 = Basic(6, 32)
+        self.modulePool1 = torch.nn.AvgPool2d(kernel_size=2, stride=2)
+
+        self.moduleConv2 = Basic(32, 64)
+        self.modulePool2 = torch.nn.AvgPool2d(kernel_size=2, stride=2)
+
+        self.moduleConv3 = Basic(64, 128)
+        self.modulePool3 = torch.nn.AvgPool2d(kernel_size=2, stride=2)
+
+        self.moduleConv4 = Basic(128, 256)
+        self.modulePool4 = torch.nn.AvgPool2d(kernel_size=2, stride=2)
+
+        #self.moduleConv5 = Basic(256, 512)
+        #self.modulePool5 = torch.nn.AvgPool2d(kernel_size=2, stride=2)
+
+        self.moduleDeconv4 = Basic(256, 256)
+        self.moduleUpsample4 = Upsample(256)
+
+        #self.moduleDeconv4 = Basic(512, 256)
+        #self.moduleUpsample4 = Upsample(256)
+
+        self.moduleDeconv3 = Basic(256, 128)
+        self.moduleUpsample3 = Upsample(128)
+
+        self.moduleDeconv2 = Basic(128, 64)
+        self.moduleUpsample2 = Upsample(64)
+
+        self.moduleWeight1 = Subnet_weight(self.kernel_size ** 2)
+        self.moduleAlpha1 = Subnet_offset(self.kernel_size ** 2)
+        self.moduleBeta1 = Subnet_offset(self.kernel_size ** 2)
+        self.moduleWeight2 = Subnet_weight(self.kernel_size ** 2)
+        self.moduleAlpha2 = Subnet_offset(self.kernel_size ** 2)
+        self.moduleBeta2 = Subnet_offset(self.kernel_size ** 2)
+        self.moduleOcclusion = Subnet_occlusion()
+
+    def forward(self, rfield0, rfield2):
+        tensorJoin = torch.cat([rfield0, rfield2], 1)
+
+        tensorConv1 = self.moduleConv1(tensorJoin)
+        tensorPool1 = self.modulePool1(tensorConv1)
+
+        tensorConv2 = self.moduleConv2(tensorPool1)
+        tensorPool2 = self.modulePool2(tensorConv2)
+
+        tensorConv3 = self.moduleConv3(tensorPool2)
+        tensorPool3 = self.modulePool3(tensorConv3)
+
+        tensorConv4 = self.moduleConv4(tensorPool3)
+        tensorPool4 = self.modulePool4(tensorConv4)
+
+        #tensorConv5 = self.moduleConv5(tensorPool4)
+        #tensorPool5 = self.modulePool5(tensorConv5)
+
+        tensorDeconv4 = self.moduleDeconv4(tensorPool4)
+        tensorUpsample4 = self.moduleUpsample4(tensorDeconv4)
+
+        tensorCombine = tensorUpsample4 + tensorConv4
+
+        tensorDeconv3 = self.moduleDeconv3(tensorCombine)
+        tensorUpsample3 = self.moduleUpsample3(tensorDeconv3)
+
+        tensorCombine = tensorUpsample3 + tensorConv3
+
+        tensorDeconv2 = self.moduleDeconv2(tensorCombine)
+        tensorUpsample2 = self.moduleUpsample2(tensorDeconv2)
+
+        tensorCombine = tensorUpsample2 + tensorConv2
+
+        Weight1 = self.moduleWeight1(tensorCombine)
+        Alpha1 = self.moduleAlpha1(tensorCombine)
+        Beta1 = self.moduleBeta1(tensorCombine)
+        Weight2 = self.moduleWeight2(tensorCombine)
+        Alpha2 = self.moduleAlpha2(tensorCombine)
+        Beta2 = self.moduleBeta2(tensorCombine)
+        Occlusion = self.moduleOcclusion(tensorCombine)
+
+        return Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion
 
 
 class AdaCoFNet(torch.nn.Module):
@@ -162,6 +301,7 @@ class AdaCoFNet(torch.nn.Module):
         self.dilation = args.dilation
 
         self.get_kernel = KernelEstimation(self.kernel_size)
+        self.get_kernel_256 = KernelEstimation_256(self.kernel_size)
 
         self.modulePad = torch.nn.ReplicationPad2d([self.kernel_pad, self.kernel_pad, self.kernel_pad, self.kernel_pad])
 
@@ -189,15 +329,27 @@ class AdaCoFNet(torch.nn.Module):
             frame2 = F.pad(frame2, (0, pad_w, 0, 0), mode='reflect')
             w_padded = True
         Weight1, Alpha1, Beta1, Weight2, Alpha2, Beta2, Occlusion = self.get_kernel(moduleNormalize(frame0), moduleNormalize(frame2))
+        Weight1_256, Alpha1_256, Beta1_256, Weight2_256, Alpha2_256, Beta2_256, Occlusion_256 = self.get_kernel_256(moduleNormalize(frame0), moduleNormalize(frame2))
 
         tensorAdaCoF1 = self.moduleAdaCoF(self.modulePad(frame0), Weight1, Alpha1, Beta1, self.dilation)
         tensorAdaCoF2 = self.moduleAdaCoF(self.modulePad(frame2), Weight2, Alpha2, Beta2, self.dilation)
+
+        tensorAdaCoF256_1 = self.moduleAdaCoF(self.modulePad(frame0), Weight1_256, Alpha1_256, Beta1_256, self.dilation)
+        tensorAdaCoF256_2 = self.moduleAdaCoF(self.modulePad(frame2), Weight2_256, Alpha2_256, Beta2_256, self.dilation)
 
         frame1 = Occlusion * tensorAdaCoF1 + (1 - Occlusion) * tensorAdaCoF2
         if h_padded:
             frame1 = frame1[:, :, 0:h0, :]
         if w_padded:
             frame1 = frame1[:, :, :, 0:w0]
+
+        frame1_256 = Occlusion_256 * tensorAdaCoF256_1 + (1 - Occlusion_256) * tensorAdaCoF256_2
+        if h_padded:
+            frame1_256 = frame1_256[:, :, 0:h0, :]
+        if w_padded:
+            frame1_256 = frame1_256[:, :, :, 0:w0]
+
+        frame1_output = (frame1_256+frame1)/2
 
         if self.training:
             # Smoothness Terms
@@ -214,6 +366,19 @@ class AdaCoFNet(torch.nn.Module):
 
             g_Spatial = g_Alpha1 + g_Beta1 + g_Alpha2 + g_Beta2
 
-            return {'frame1': frame1, 'g_Spatial': g_Spatial, 'g_Occlusion': g_Occlusion}
+            m_Alpha1_256 = torch.mean(Weight1_256 * Alpha1_256, dim=1, keepdim=True)
+            m_Alpha2_256 = torch.mean(Weight2_256 * Alpha2_256, dim=1, keepdim=True)
+            m_Beta1_256 = torch.mean(Weight1_256 * Beta1_256, dim=1, keepdim=True)
+            m_Beta2_256 = torch.mean(Weight2_256 * Beta2_256, dim=1, keepdim=True)
+
+            g_Alpha1_256 = CharbonnierFunc(m_Alpha1_256[:, :, :, :-1] - m_Alpha1_256[:, :, :, 1:]) + CharbonnierFunc(m_Alpha1_256[:, :, :-1, :] - m_Alpha1_256[:, :, 1:, :])
+            g_Beta1_256 = CharbonnierFunc(m_Beta1_256[:, :, :, :-1] - m_Beta1_256[:, :, :, 1:]) + CharbonnierFunc(m_Beta1_256[:, :, :-1, :] - m_Beta1_256[:, :, 1:, :])
+            g_Alpha2_256 = CharbonnierFunc(m_Alpha2_256[:, :, :, :-1] - m_Alpha2_256[:, :, :, 1:]) + CharbonnierFunc(m_Alpha2_256[:, :, :-1, :] - m_Alpha2_256[:, :, 1:, :])
+            g_Beta2_256 = CharbonnierFunc(m_Beta2_256[:, :, :, :-1] - m_Beta2_256[:, :, :, 1:]) + CharbonnierFunc(m_Beta2_256[:, :, :-1, :] - m_Beta2_256[:, :, 1:, :])
+            g_Occlusion_256 = CharbonnierFunc(Occlusion_256[:, :, :, :-1] - Occlusion_256[:, :, :, 1:]) + CharbonnierFunc(Occlusion_256[:, :, :-1, :] - Occlusion_256[:, :, 1:, :])
+
+            g_Spatial_256 = g_Alpha1_256 + g_Beta1_256 + g_Alpha2_256 + g_Beta2_256
+
+            return {'frame1': frame1_output, 'g_Spatial': g_Spatial, 'g_Occlusion': g_Occlusion, 'g_Spatial_256': g_Spatial_256, 'g_Occlusion_256': g_Occlusion_256}
         else:
-            return frame1
+            return frame1_output
